@@ -1,10 +1,14 @@
-import { Button } from "./components/ui/button"
+import { ModeToggle } from "./components/mode-toggle"
+
+
+
 
 
 function App() {
   return <div>
-    <Button> Click me to check </Button>
+    <ModeToggle/>
   </div>
+
 }
 
 export default App
