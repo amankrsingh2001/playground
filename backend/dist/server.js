@@ -42,6 +42,7 @@ const cors_1 = __importDefault(require("cors"));
 const adaptors_1 = require("./adaptors");
 const config_1 = __importDefault(require("./config"));
 const { app: { port } } = config_1.default;
+// Extend the Express Request interface to include our custom properties
 const app = (0, express_1.default)();
 let redisClient;
 const init = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -68,11 +69,12 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
     // using morgan middleware for API logs
     // app.use(morgan);
     // all routes
-    // const routes = require("./routes");
-    // app.use("/v1", routes);
+    const routes = require("./routes");
+    app.use("/v1", routes);
     // binding mysql and redis client in express req.
     // so all the API's can use the connection.
-    app.get("/", function (req, res) {
+    app.request.redisClient = redisClient;
+    app.get("/", (req, res) => {
         res.status(200).send({ message: "API Routes are up and working." });
     });
     app.listen(port, () => {
