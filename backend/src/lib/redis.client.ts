@@ -1,17 +1,7 @@
-interface RedisClient {
-    GET: (field: string) => Promise<string | null>;
-    HGETALL: (field: string) => Promise<Record<string, string> | null>;
-    SET: (field: string, value: string) => Promise<void>;
-    EXPIRE: (field: string, ttl: number) => Promise<void>;
-    DEL: (field: string) => Promise<void>;
-    lPush: (queueName: string, data: string) => Promise<void>;
-    rPop: (queueName: string) => Promise<string | null>;
-    hSet: (key: string, field: string, value: string) => Promise<void>;
-    mGet: (keys: string[]) => Promise<(string | null)[]>;
-}
+import { RedisClientType } from 'redis';
 
 // get functions
-const getRedisField = async (redisClient: RedisClient, field: string): Promise<string | null> => {
+const getRedisField = async (redisClient: RedisClientType, field: string): Promise<string | null> => {
     try {
         console.log(`getRedisField() - [field: ${field}]`);
         return await redisClient.GET(field);
@@ -21,7 +11,7 @@ const getRedisField = async (redisClient: RedisClient, field: string): Promise<s
     }
 };
 
-const getHSETRedisField = async (redisClient: RedisClient, field: string): Promise<Record<string, string> | null> => {
+const getHSETRedisField = async (redisClient: RedisClientType, field: string): Promise<Record<string, string> | null> => {
     try {
         console.log(`getHSETRedisField() - [field: ${field}]`);
         return await redisClient.HGETALL(field);
@@ -32,7 +22,7 @@ const getHSETRedisField = async (redisClient: RedisClient, field: string): Promi
 };
 
 // set functions
-const setRedisField = async (redisClient: RedisClient, field: string, value: string, ttl: number = 0): Promise<void> => {
+const setRedisField = async (redisClient: RedisClientType, field: string, value: string, ttl: number = 0): Promise<void> => {
     try {
         console.log(`setRedisField() - [field: ${field}, value: ${value}, ttl: ${ttl}]`);
         await redisClient.SET(field, value);
@@ -46,7 +36,7 @@ const setRedisField = async (redisClient: RedisClient, field: string, value: str
     }
 };
 
-const setRedisTTL = async (redisClient: RedisClient, keys: string[] = [], ttl: number = 0): Promise<void> => {
+const setRedisTTL = async (redisClient: RedisClientType, keys: string[] = [], ttl: number = 0): Promise<void> => {
     try {
         if (!Array.isArray(keys) || keys.length === 0) {
             throw new Error("Keys must be a non-empty array.");
@@ -66,7 +56,7 @@ const setRedisTTL = async (redisClient: RedisClient, keys: string[] = [], ttl: n
 };
 
 const HSETRedisField = async (
-    redisClient: RedisClient,
+    redisClient: RedisClientType,
     key: string,
     field: string,
     value: string,
@@ -85,7 +75,7 @@ const HSETRedisField = async (
     }
 };
 
-const deleteRedisField = async (redisClient: RedisClient, field: string): Promise<void> => {
+const deleteRedisField = async (redisClient: RedisClientType, field: string): Promise<void> => {
     try {
         console.log(`deleteRedisField() - [field: ${field}]`);
         await redisClient.DEL(field);
@@ -95,7 +85,7 @@ const deleteRedisField = async (redisClient: RedisClient, field: string): Promis
     }
 };
 
-const redisEnqueue = async (redisClient: RedisClient, queueName: string, data: string): Promise<void> => {
+const redisEnqueue = async (redisClient: RedisClientType, queueName: string, data: string): Promise<void> => {
     try {
         console.log(`redisEnqueue() - [queueName: ${queueName}, data: ${data}]`);
         await redisClient.lPush(queueName, data);
@@ -105,7 +95,7 @@ const redisEnqueue = async (redisClient: RedisClient, queueName: string, data: s
     }
 };
 
-const redisDequeue = async (redisClient: RedisClient, queueName: string): Promise<string | null> => {
+const redisDequeue = async (redisClient: RedisClientType, queueName: string): Promise<string | null> => {
     try {
         console.log(`redisDequeue() - [queueName: ${queueName}]`);
         return await redisClient.rPop(queueName);
@@ -115,7 +105,7 @@ const redisDequeue = async (redisClient: RedisClient, queueName: string): Promis
     }
 };
 
-const pushToList = async (redisClient: RedisClient, key: string, value: string, expiryTime: number): Promise<void> => {
+const pushToList = async (redisClient: RedisClientType, key: string, value: string, expiryTime: number): Promise<void> => {
     try {
         console.log(`pushToList() - [key: ${key}]`);
         await redisClient.lPush(key, value);
@@ -126,7 +116,7 @@ const pushToList = async (redisClient: RedisClient, key: string, value: string, 
     }
 };
 
-const getMultipleValues = async (redisClient: RedisClient, keys: string[] = []): Promise<(string | null)[]> => {
+const getMultipleValues = async (redisClient: RedisClientType, keys: string[] = []): Promise<(string | null)[]> => {
     try {
         const response = await redisClient.mGet(keys);
         return response;

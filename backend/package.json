@@ -14,13 +14,15 @@
   "dependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "@types/ws": "^8.18.1",
-    "dotenv": "^16.6.0",
-    "ws": "^8.18.2",
     "@types/redis": "^4.0.10",
+    "@types/socket.io": "^3.0.1",
+    "@types/ws": "^8.18.1",
     "cors": "^2.8.5",
+    "dotenv": "^16.6.0",
     "express": "^5.1.0",
-    "redis": "^5.5.6"
+    "redis": "^5.5.6",
+    "socket.io": "^4.8.1",
+    "ws": "^8.18.2"
   },
   "devDependencies": {
     "@types/dotenv": "^6.1.1",

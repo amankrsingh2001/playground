@@ -4,14 +4,21 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { createRedisConnection } from "./adaptors";
 import { RedisClientType } from 'redis';
+import { createServer, Server as HttpServer } from 'http';
+import { Server as SocketIoServer, Socket } from 'socket.io';
 import config from "./config";
+import { WebSocket } from "ws";
+import { AuthenticatedWebSocket } from "./lib/interfaces";
+import { authenticateWebSocket } from "./middleware/socketAuth";
 const { app: { port } } = config;
 
-// Extend the Express Request interface to include our custom properties
-declare module "express" {
-    interface Request {
-    }
+let io: SocketIoServer;
+
+interface CustomSocket extends Socket {
+    redisClient?: RedisClientType;
 }
+
+// Extend the Express Request interface to include our custom properties
 
 const app: Express = express();
 
@@ -46,13 +53,49 @@ const startExpressServer = async (): Promise<void> => {
     // app.use(morgan);
 
     // all routes
-    // const routes = require("./routes");
-    // app.use("/v1", routes);
+    const routes = require("./routes");
+    app.use("/v1", routes);
 
     // binding mysql and redis client in express req.
     // so all the API's can use the connection.
 
-    app.get("/", function (req: Request, res: Response) {
+    app.request.redisClient = redisClient;
+
+    const server = createServer(app);
+    const wsServer = new WebSocket.Server({ server });
+    wsServer.on("connection", (ws: AuthenticatedWebSocket, req) => {
+        console.log("New WebSocket connection");
+
+        // Extract token from query parameters or headers
+        const url = new URL(req.url!, `http://${req.headers.host}`);
+        const token = url.searchParams.get("token") || req.headers["authorization"]?.split(" ")[1];
+
+        if (!token) {
+            ws.close(4002, "No token provided");
+            return;
+        }
+
+        // Attach Redis client or reuse one
+        ws.redisClient = redisClient;
+
+        // Authenticate
+        authenticateWebSocket(ws, token, redisClient).then(() => {
+            // Now the socket is authenticated; set up message handlers
+            ws.on("message", (message) => {
+                console.log(`Received: ${message}`);
+                // Handle messages here
+            });
+
+            ws.on("close", () => {
+                console.log("WebSocket disconnected");
+                if (ws.redisClient) {
+                    ws.redisClient.quit().catch(console.error);
+                }
+            });
+        });
+    });
+
+    app.get("/", (req: Request, res: Response) => {
         res.status(200).send({ message: "API Routes are up and working." });
     });
 
@@ -60,6 +103,8 @@ const startExpressServer = async (): Promise<void> => {
         console.log("server is running on port : %s", port);
     });
 };
+
+
 
 process.on("uncaughtException", (error: Error, source: string) => {
     console.error(error, source);
